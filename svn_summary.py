@@ -3,11 +3,16 @@ import subprocess
 def path_to_table(path, author):
     try :
         command ='svn log {} --search "{}" | grep -oE "r([0-9])\w* | #([0-9])\w*"'.format(path, author)
-    except : 
-        raise RuntimeError("error while trying to get the logs from svn, its likely that your are not connected to internet")
-    raw_output_string = (subprocess.check_output(command, shell=True)).decode("utf-8") 
-    clean = raw_formater(raw_output_string)
+        raw_output = subprocess.check_output(command, shell=True)
+        raw_string = raw_output.decode("utf-8") 
+        clean = raw_formater(raw_string)
+    except subprocess.CalledProcessError : 
+        print("no commit from {} in the path {}".format(author,path))
+        clean = None
+        pass
+
     return clean
+
 
 def raw_formater(raw):
     one_line = ' '.join((raw.replace("\\n"," ")).split())  
@@ -26,6 +31,8 @@ def string_to_dict(revtask_list):
             else :
                 task_and_revisions[task_without_hash].append('r'+a_revision_with_its_tasks[0])
     return task_and_revisions
+
+    
 
 
 
