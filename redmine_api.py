@@ -41,8 +41,10 @@ def checkIfGoodProject(project):
         return True
     return False
 
+
 def getCurrentUserId(redmine):
     return redmine.user.get('current').id
+
 
 def createTimeTable(times, redmine):
     timeTable = {}
@@ -50,14 +52,22 @@ def createTimeTable(times, redmine):
     print("fetching logged time")
     progress_bar = ProgressBar(width=40, total_range=len(times))
     progress_bar.init_bar()
+
     for time in times:
         progress_bar.inc_bar()
         if(user == time.user.id):
             try:
                 timeTable[str(time.issue.id)][0] += time.hours
             except KeyError:
-                timeTable[str(time.issue.id)] = [time.hours,
-                                                 redmine.issue.get(time.issue.id).subject]
+                issue = redmine.issue.get(time.issue.id)
+                try:
+                    timeTable[str(time.issue.id)] = [time.hours,
+                                                     issue.subject,
+                                                     issue.fixed_version.name]
+                except exceptions.ResourceAttrError:
+                    timeTable[str(time.issue.id)] = [time.hours,
+                                                     issue.subject,
+                                                     None]
     return timeTable
 
 
