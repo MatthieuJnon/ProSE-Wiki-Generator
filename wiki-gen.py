@@ -11,22 +11,35 @@ def loadParameters():
 
 def walker(path, author, tasks):
     os.chdir(path)
+    used_keys=[]
     for directory in os.listdir():
         if directory not in [".svn", "wiki_gen"]:
             to_explore = os.path.join(path, directory)
             explored = path_to_table(to_explore, author)
             if (explored != None):
-                full_info = joiner(tasks, explored)
-                to_file(full_info, directory, path)
-
+                full_info_and_used_keys = joiner(tasks, explored)
+                to_file(full_info_and_used_keys[0], directory, path)
+                used_keys.extend(full_info_and_used_keys[1])
+    leftover = leftover_gatherer(tasks, used_keys)
+    to_file(leftover, "leftovers", path)
 
 def joiner(task_details, task_revisions):
     details_and_revs = [[]]
+    used_keys=[]
     for key in task_details:
         if key in task_revisions:
+            used_keys.append(key)
             a_line = wiki_line(key, task_details, task_revisions)
             details_and_revs.append(a_line)
-    return details_and_revs
+    return [details_and_revs,used_keys]
+
+def leftover_gatherer(task_details,used_keys):
+    lines = [[]]
+    for key in task_details:
+        if key not in used_keys:
+            a_line = wiki_line(key, task_details, None)
+            lines.append(a_line)
+    return lines
 
 
 def wiki_line(key, task_details, task_revisions):
